@@ -13,7 +13,6 @@ services:
       SERVER_NAME: ":80"  
     volumes:
       - .:/app
-      #- /mnt/video/film:/media/film:ro
-      - /Users/aditya/playground/film:/media/film:ro
+      - /mnt/video/film:/media/film:ro
     env_file:
       - .env
