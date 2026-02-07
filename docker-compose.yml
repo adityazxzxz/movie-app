@@ -12,7 +12,6 @@ services:
     environment:
       SERVER_NAME: ":80"  
     volumes:
-      - .:/app
       - /mnt/video/film:/media/film:ro
     env_file:
       - .env
