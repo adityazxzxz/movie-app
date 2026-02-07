@@ -1,0 +1,19 @@
+version: "3"
+
+services:
+  laravel-franken:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    container_name: nonton-app
+    restart: unless-stopped
+    ports:
+      - "8082:80"
+    environment:
+      SERVER_NAME: ":80"  
+    volumes:
+      - .:/app
+      #- /mnt/video/film:/media/film:ro
+      - /Users/aditya/playground/film:/media/film:ro
+    env_file:
+      - .env
