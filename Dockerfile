@@ -1,4 +1,22 @@
 # =========================
+# Stage 0 — Frontend build (Vite)
+# =========================
+FROM node:20-alpine AS frontend
+
+WORKDIR /app
+
+# Copy frontend config
+COPY package.json package-lock.json vite.config.* ./
+RUN npm ci
+
+# Copy resources only
+COPY resources ./resources
+
+# Build Vite assets
+RUN npm run build
+
+
+# =========================
 # Stage 1 — Composer dependencies
 # =========================
 FROM php:8.4-cli AS vendor
@@ -24,12 +42,12 @@ RUN curl -sS https://getcomposer.org/download/2.6.5/composer.phar \
     -o /usr/local/bin/composer \
     && chmod +x /usr/local/bin/composer
 
-# Copy project
+# Copy backend files
 COPY . .
 
-# Install dependencies (TANPA Octane)
+# Install PHP dependencies (NO dev)
 RUN composer install --no-dev --optimize-autoloader --no-interaction
-RUN npm run build
+
 
 # =========================
 # Stage 2 — FrankenPHP runtime
@@ -38,17 +56,18 @@ FROM dunglas/frankenphp:php8.4
 
 WORKDIR /app
 
-# Copy app + vendor
+# Copy backend app + vendor
 COPY --from=vendor /app /app
 
-# Install runtime extensions (kalau belum ada)
+# Copy Vite build result
+COPY --from=frontend /app/public/build /app/public/build
+
+# Install runtime PHP extensions
 RUN install-php-extensions \
     gd zip pdo_mysql sockets pcntl posix opcache intl
 
-RUN php artisan migrate    
-
-# FrankenPHP default port
+# Expose HTTP port
 EXPOSE 80
 
-# Jalankan FrankenPHP (serve Laravel public/)
+# Run FrankenPHP
 CMD ["frankenphp", "run", "--config", "/etc/frankenphp/Caddyfile"]
