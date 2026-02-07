@@ -29,6 +29,7 @@ COPY . .
 
 # Install dependencies (TANPA Octane)
 RUN composer install --no-dev --optimize-autoloader --no-interaction
+RUN npm run build
 
 # =========================
 # Stage 2 — FrankenPHP runtime
@@ -43,6 +44,8 @@ COPY --from=vendor /app /app
 # Install runtime extensions (kalau belum ada)
 RUN install-php-extensions \
     gd zip pdo_mysql sockets pcntl posix opcache intl
+
+RUN php artisan migrate    
 
 # FrankenPHP default port
 EXPOSE 80
