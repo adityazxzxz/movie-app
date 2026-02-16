@@ -1,22 +1,4 @@
 # =========================
-# Stage 0 — Frontend build (Vite)
-# =========================
-FROM node:20-alpine AS frontend
-
-WORKDIR /app
-
-# Copy frontend config
-COPY package.json package-lock.json vite.config.* ./
-RUN npm ci
-
-# Copy resources only
-COPY resources ./resources
-
-# Build Vite assets
-RUN npm run build
-
-
-# =========================
 # Stage 1 — Composer dependencies
 # =========================
 FROM php:8.4-cli AS vendor
@@ -38,9 +20,8 @@ RUN apt-get update && apt-get install -y \
         gd zip pdo_mysql sockets pcntl posix opcache intl
 
 # Install Composer
-RUN curl -sS https://getcomposer.org/download/2.6.5/composer.phar \
-    -o /usr/local/bin/composer \
-    && chmod +x /usr/local/bin/composer
+RUN curl -sS https://getcomposer.org/installer | php \
+    -- --install-dir=/usr/local/bin --filename=composer
 
 # Copy backend files
 COPY . .
@@ -59,15 +40,12 @@ WORKDIR /app
 # Copy backend app + vendor
 COPY --from=vendor /app /app
 
-# Copy Vite build result
-COPY --from=frontend /app/public/build /app/public/build
+# ❗ public/build sudah dari lokal → tidak perlu COPY frontend stage
 
 # Install runtime PHP extensions
 RUN install-php-extensions \
     gd zip pdo_mysql sockets pcntl posix opcache intl
 
-# Expose HTTP port
 EXPOSE 80
 
-# Run FrankenPHP
 CMD ["frankenphp", "run", "--config", "/etc/frankenphp/Caddyfile"]
