@@ -20,7 +20,7 @@ class VideoController extends Controller
         $search = strtolower($request->query('q'));
 
         $videos = collect(File::files($this->videoPath))
-            ->filter(fn($file) => in_array($file->getExtension(), ['mp4', 'mkv', 'webm']))
+            ->filter(fn($file) => in_array($file->getExtension(), ['mp4', 'webm']))
             ->map(function ($file) {
                 $name = pathinfo($file->getFilename(), PATHINFO_FILENAME);
 
